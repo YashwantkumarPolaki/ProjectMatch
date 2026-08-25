@@ -1,3 +1,4 @@
+import { useInterest } from "../../context/InterestContext.jsx";
 import { limitWords } from "../../utils/textUtils.js";
 import styles from "./ProjectDetailsModal.module.css";
 
@@ -7,7 +8,24 @@ import styles from "./ProjectDetailsModal.module.css";
  * domains/tech stacks list, description narrative, required skills, and action buttons.
  */
 export default function ProjectDetailsModal({ project, onClose, onApply }) {
+  const { currentUser, onRequireAuth } = useInterest() || {};
+
   if (!project) return null;
+
+  const handleApplyClick = () => {
+    if (onApply) {
+      const res = onApply(project);
+      if (res === false) return;
+    } else {
+      if (!currentUser) {
+        onClose();
+        onRequireAuth?.();
+        return;
+      }
+    }
+    alert(`Application submitted for "${project.title}"!`);
+    onClose();
+  };
 
   const lead = project.lead || {
     initial: "R",
@@ -116,11 +134,7 @@ export default function ProjectDetailsModal({ project, onClose, onApply }) {
         <div className={styles.footer}>
           <button
             className={styles.applyBtn}
-            onClick={() => {
-              onApply?.(project);
-              alert(`Application submitted for "${project.title}"!`);
-              onClose();
-            }}
+            onClick={handleApplyClick}
           >
             Apply Now
           </button>

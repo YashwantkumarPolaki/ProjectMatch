@@ -1094,247 +1094,257 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
   };
 
   return (
-    <div className={styles.app}>
-      {/* ── Firestore Error Boundary Alert Banner ── */}
-      {firestoreError && (
-        <div style={{ background: "#FEF2F2", borderBottom: "1px solid #FCA5A5", color: "#991B1B", padding: "10px 16px", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span>⚠️ {firestoreError}</span>
-          <button onClick={onRetryLoad} style={{ background: "#991B1B", color: "#fff", border: "none", borderRadius: "4px", padding: "4px 10px", fontSize: "12px", cursor: "pointer" }}>
-            Refresh
-          </button>
-        </div>
-      )}
-
-      {/* ── Nav ── */}
-      <nav className={styles.nav}>
-        <div className={styles.navInner}>
-          <div
-            className={styles.logo}
-            onClick={() => { setView(null); setTab("landing"); }}
-            style={{ cursor: "pointer" }}
-          >
-            <ProjectMatchLogo width={28} height={28} />
-          </div>
-
-          <div className={styles.navTabs}>
-            <button
-              className={`${styles.navTab} ${tab === "projects" && !view ? styles.navTabActive : ""}`}
-              onClick={() => { setView(null); setTab("projects"); }}
-            >
-              Browse Projects
-            </button>
-            <button
-              className={`${styles.navTab} ${tab === "people" && !view ? styles.navTabActive : ""}`}
-              onClick={() => { setView(null); setTab("people"); }}
-            >
-              My Matches
-            </button>
-            <button
-              className={`${styles.navTab} ${tab === "dashboard" && !view ? styles.navTabActive : ""}`}
-              onClick={() => { setView(null); setTab("dashboard"); }}
-            >
-              Dashboard
+    <InterestProvider
+      projects={projects}
+      currentUser={currentUser}
+      onRequireAuth={() => setShowAuth(true)}
+    >
+      <div className={styles.app}>
+        {/* Firestore error banner */}
+        {firestoreError && (
+          <div style={{ background: "#FEF2F2", borderBottom: "1px solid #FCA5A5", color: "#991B1B", padding: "10px 16px", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>⚠️ {firestoreError}</span>
+            <button onClick={onRetryLoad} style={{ background: "#991B1B", color: "#fff", border: "none", borderRadius: "4px", padding: "4px 10px", fontSize: "12px", cursor: "pointer" }}>
+              Refresh
             </button>
           </div>
-
-          <div className={styles.navRight}>
-            <button className={styles.navSearchBtn} onClick={() => { setView(null); setTab("projects"); }}>
-              🔍
-            </button>
-
-            {isOwner && (
-              <button
-                className={styles.btnSecondary}
-                onClick={() => setShowPostProject(true)}
-                style={{ padding: "6px 12px", fontSize: "13px" }}
-              >
-                + Post Project
-              </button>
-            )}
-
-            {currentUser ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div
-                  className={styles.avatarBtn}
-                  onClick={() => {
-                    if (activeUserProfile) {
-                      setShowEditProfile(true);
-                    }
-                  }}
-                  title="Click to edit profile"
-                >
-                  <img
-                    src={`https://api.dicebear.com/7.x/${activeUserProfile?.avatarStyle || "avataaars"}/svg?seed=${activeUserProfile?.avatarSeed || currentUser.email?.split("@")[0] || "User"}&backgroundColor=${activeUserProfile?.avatarBg || "b6e3f4"}`}
-                    alt="User profile avatar"
-                  />
-                </div>
-                <button
-                  className={styles.btnSecondary}
-                  onClick={() => setShowEditProfile(true)}
-                  style={{ padding: "5px 12px", fontSize: "12px" }}
-                >
-                  ✏️ Edit Profile
-                </button>
-                <button
-                  className={styles.btnSecondary}
-                  onClick={handleSignOut}
-                  style={{ padding: "5px 12px", fontSize: "12px" }}
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <button
-                className={styles.btnPrimary}
-                onClick={() => setShowAuth(true)}
-                style={{ padding: "6px 14px", fontSize: "13px" }}
-              >
-                Sign In / Up
-              </button>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Content ── */}
-      <main className={styles.main}>
-        {/* Project detail */}
-        {selectedProject && (
-          <ProjectPage
-            project={selectedProject}
-            profiles={profiles}
-            onSelectPerson={(person) => setView({ type: "person", id: person.id })}
-            onBack={() => setView(null)}
-          />
         )}
 
-        {/* Person detail */}
-        {selectedPerson && (
-          <PersonPage
-            person={selectedPerson}
-            projects={projects}
-            profiles={profiles}
-            onSelectProject={(project) => setView({ type: "project", id: project.id })}
-            onBack={() => setView(null)}
-          />
-        )}
+        {/* ── Nav ── */}
+        <nav className={styles.nav}>
+          <div className={styles.navInner}>
+            <div
+              className={styles.logo}
+              onClick={() => { setView(null); setTab("landing"); }}
+              style={{ cursor: "pointer" }}
+            >
+              <ProjectMatchLogo width={28} height={28} />
+            </div>
 
-        {/* Views */}
-        {!view && (
-          <div className={styles.lists}>
-            {tab === "landing" && (
-              <LandingView
-                projects={projects}
-                onBrowse={() => setTab("projects")}
-                onOpenDetails={(proj) => setModalProject(proj)}
-              />
-            )}
+            <div className={styles.navTabs}>
+              <button
+                className={`${styles.navTab} ${tab === "projects" && !view ? styles.navTabActive : ""}`}
+                onClick={() => { setView(null); setTab("projects"); }}
+              >
+                Browse Projects
+              </button>
+              <button
+                className={`${styles.navTab} ${tab === "people" && !view ? styles.navTabActive : ""}`}
+                onClick={() => { setView(null); setTab("people"); }}
+              >
+                My Matches
+              </button>
+              <button
+                className={`${styles.navTab} ${tab === "dashboard" && !view ? styles.navTabActive : ""}`}
+                onClick={() => { setView(null); setTab("dashboard"); }}
+              >
+                Dashboard
+              </button>
+            </div>
 
-            {tab === "dashboard" && (
-              <DashboardView
-                projects={projects}
-                isLoading={isLoading}
-                onSelectProject={(project) => setView({ type: "project", id: project.id })}
-                onOpenDetails={(proj) => setModalProject(proj)}
-              />
-            )}
+            <div className={styles.navRight}>
+              <button className={styles.navSearchBtn} onClick={() => { setView(null); setTab("projects"); }}>
+                🔍
+              </button>
 
-            {tab === "projects" && (
-              <ProjectListContent
-                projects={projects}
-                isLoading={isLoading}
-                onSelectProject={(project) => setView({ type: "project", id: project.id })}
-                onOpenDetails={(proj) => setModalProject(proj)}
-              />
-            )}
+              {isOwner && (
+                <button
+                  className={styles.btnSecondary}
+                  onClick={() => setShowPostProject(true)}
+                  style={{ padding: "6px 12px", fontSize: "13px" }}
+                >
+                  + Post Project
+                </button>
+              )}
 
-            {tab === "people" && (
-              <div className={styles.listPage}>
-                <div className={styles.pageHeader}>
-                  <h1 className={styles.pageTitle}>My Matches</h1>
-                  <p className={styles.pageSubtitle}>
-                    {profiles.length} candidates ready to join projects that need their specific skills.
-                  </p>
+              {currentUser ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    className={styles.avatarBtn}
+                    onClick={() => {
+                      if (activeUserProfile) {
+                        setShowEditProfile(true);
+                      }
+                    }}
+                    title="Click to edit profile"
+                  >
+                    <img
+                      src={`https://api.dicebear.com/7.x/${activeUserProfile?.avatarStyle || "avataaars"}/svg?seed=${activeUserProfile?.avatarSeed || currentUser.email?.split("@")[0] || "User"}&backgroundColor=${activeUserProfile?.avatarBg || "b6e3f4"}`}
+                      alt="User profile avatar"
+                    />
+                  </div>
+                  <button
+                    className={styles.btnSecondary}
+                    onClick={() => setShowEditProfile(true)}
+                    style={{ padding: "5px 12px", fontSize: "12px" }}
+                  >
+                    ✏️ Edit Profile
+                  </button>
+                  <button
+                    className={styles.btnSecondary}
+                    onClick={handleSignOut}
+                    style={{ padding: "5px 12px", fontSize: "12px" }}
+                  >
+                    Sign Out
+                  </button>
                 </div>
-                {isLoading ? (
-                  <LoadingSkeleton count={4} />
-                ) : profiles.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--bg-subtle)", borderRadius: "12px", border: "1px dashed var(--border)" }}>
-                    <div style={{ fontSize: "32px", marginBottom: "8px" }}>👥</div>
-                    <h3 style={{ fontFamily: "var(--font-head)", fontSize: "18px", margin: "0 0 6px 0" }}>No Candidates Found</h3>
-                    <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0 }}>
-                      No candidates match your selection yet.
+              ) : (
+                <button
+                  className={styles.btnPrimary}
+                  onClick={() => setShowAuth(true)}
+                >
+                  Sign In / Up
+                </button>
+              )}
+            </div>
+          </div>
+        </nav>
+
+        {/* ── Main Container ── */}
+        <main className={styles.main}>
+          {/* Project detail */}
+          {selectedProject && (
+            <ProjectPage
+              project={selectedProject}
+              profiles={profiles}
+              onSelectPerson={(person) => setView({ type: "person", id: person.id })}
+              onBack={() => setView(null)}
+            />
+          )}
+
+          {/* Person detail */}
+          {selectedPerson && (
+            <PersonPage
+              person={selectedPerson}
+              projects={projects}
+              profiles={profiles}
+              onSelectProject={(project) => setView({ type: "project", id: project.id })}
+              onBack={() => setView(null)}
+            />
+          )}
+
+          {/* Views */}
+          {!view && (
+            <div className={styles.lists}>
+              {tab === "landing" && (
+                <LandingView
+                  projects={projects}
+                  onBrowse={() => setTab("projects")}
+                  onOpenDetails={(proj) => setModalProject(proj)}
+                />
+              )}
+
+              {tab === "dashboard" && (
+                <DashboardView
+                  projects={projects}
+                  isLoading={isLoading}
+                  onSelectProject={(project) => setView({ type: "project", id: project.id })}
+                  onOpenDetails={(proj) => setModalProject(proj)}
+                />
+              )}
+
+              {tab === "projects" && (
+                <ProjectListContent
+                  projects={projects}
+                  isLoading={isLoading}
+                  onSelectProject={(project) => setView({ type: "project", id: project.id })}
+                  onOpenDetails={(proj) => setModalProject(proj)}
+                />
+              )}
+
+              {tab === "people" && (
+                <div className={styles.listPage}>
+                  <div className={styles.pageHeader}>
+                    <h1 className={styles.pageTitle}>My Matches</h1>
+                    <p className={styles.pageSubtitle}>
+                      {profiles.length} candidates ready to join projects that need their specific skills.
                     </p>
                   </div>
-                ) : (
-                  <div className={styles.peopleGrid}>
-                    {profiles.map((p, i) => (
-                      <PersonListCard
-                        key={p.id}
-                        person={p}
-                        index={i}
-                        onClick={() => setView({ type: "person", id: p.id })}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  {isLoading ? (
+                    <LoadingSkeleton count={4} />
+                  ) : (
+                    <div className={styles.grid}>
+                      {profiles.map((p, i) => (
+                        <MatchCard
+                          key={p.id}
+                          candidate={p}
+                          scores={{ overallScore: 88, gapFillPercent: 80, availabilityScore: 90, experienceScore: 85 }}
+                          whyMatched="Matches high-priority skill gaps."
+                          rank={i + 1}
+                          delay={i * 40}
+                          animate={false}
+                          onClick={() => setView({ type: "person", id: p.id })}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        <Footer />
+
+        {/* Auth Modal */}
+        {showAuth && (
+          <AuthModal
+            onClose={() => setShowAuth(false)}
+            onCreateProfile={handleCreateProfile}
+            onSignupAsOwner={handleSignupAsOwner}
+          />
         )}
-      </main>
 
-      {/* Auth Modal */}
-      {showAuth && !currentUser && (
-        <AuthModal
-          onClose={() => setShowAuth(false)}
-          onCreateProfile={handleCreateProfile}
-          onSignupAsOwner={handleSignupAsOwner}
-        />
-      )}
+        {/* Post Project Modal */}
+        {showPostProject && (
+          <PostProjectModal
+            ownerInfo={ownerInfo || (currentUser ? { email: currentUser.email, id: currentUser.uid, name: currentUser.displayName || "Project Owner" } : null)}
+            onClose={() => setShowPostProject(false)}
+            onSubmit={handleCreateProject}
+          />
+        )}
 
-      {/* Post Project Modal */}
-      {showPostProject && (
-        <PostProjectModal
-          ownerInfo={ownerInfo || (currentUser ? { email: currentUser.email, id: currentUser.uid, name: currentUser.displayName || "Project Owner" } : null)}
-          onClose={() => setShowPostProject(false)}
-          onSubmit={handleCreateProject}
-        />
-      )}
-
-      {/* Edit Profile Modal */}
-      {showEditProfile && (activeUserProfile || currentUser) && (
-        <EditProfileModal
-          profile={
-            activeUserProfile || {
-              id: currentUser?.uid || `user_${Date.now()}`,
-              name: currentUser?.displayName || currentUser?.email?.split("@")[0] || "Member",
-              email: currentUser?.email || "",
-              skills: ["React"],
-              interests: ["Open Source"],
-              availability: AVAILABILITY.HIGH,
-              experienceLevel: EXPERIENCE.ADVANCED,
-              bio: "",
-              role: "candidate",
+        {/* Edit Profile Modal */}
+        {showEditProfile && (activeUserProfile || currentUser) && (
+          <EditProfileModal
+            profile={
+              activeUserProfile || {
+                id: currentUser?.uid || `user_${Date.now()}`,
+                name: currentUser?.displayName || currentUser?.email?.split("@")[0] || "Member",
+                email: currentUser?.email || "",
+                skills: ["React"],
+                interests: ["Open Source"],
+                availability: AVAILABILITY.HIGH,
+                experienceLevel: EXPERIENCE.ADVANCED,
+                bio: "",
+                role: "candidate",
+              }
             }
-          }
-          onClose={() => setShowEditProfile(false)}
-          onSave={handleSaveProfile}
-        />
-      )}
+            onClose={() => setShowEditProfile(false)}
+            onSave={handleSaveProfile}
+          />
+        )}
 
-      {/* Project Details Modal */}
-      {modalProject && (
-        <ProjectDetailsModal
-          project={modalProject}
-          onClose={() => setModalProject(null)}
-          onApply={(proj) => console.log("Applied to", proj.title)}
-        />
-      )}
+        {/* Project Details Modal */}
+        {modalProject && (
+          <ProjectDetailsModal
+            project={modalProject}
+            onClose={() => setModalProject(null)}
+            onApply={(proj) => {
+              if (!currentUser) {
+                setModalProject(null);
+                setShowAuth(true);
+                return false;
+              }
+              return true;
+            }}
+          />
+        )}
 
-      {/* Footer */}
-      <Footer />
-    </div>
+        {/* Footer */}
+        <Footer />
+      </div>
+    </InterestProvider>
   );
 }
 
@@ -1397,18 +1407,16 @@ export default function App() {
   };
 
   return (
-    <InterestProvider projects={projects}>
-      <MainContent
-        projects={projects}
-        setProjects={setProjects}
-        profiles={profiles}
-        setProfiles={setProfiles}
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        isLoading={isLoading}
-        firestoreError={firestoreError}
-        onRetryLoad={handleRetryLoad}
-      />
-    </InterestProvider>
+    <MainContent
+      projects={projects}
+      setProjects={setProjects}
+      profiles={profiles}
+      setProfiles={setProfiles}
+      currentUser={currentUser}
+      setCurrentUser={setCurrentUser}
+      isLoading={isLoading}
+      firestoreError={firestoreError}
+      onRetryLoad={handleRetryLoad}
+    />
   );
 }

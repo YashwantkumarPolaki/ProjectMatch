@@ -14,7 +14,7 @@ const SEED_PERSON_INTEREST = new Set(["p2:proj1", "p6:proj3"]);
 
 const InterestContext = createContext(null);
 
-export function InterestProvider({ children, projects }) {
+export function InterestProvider({ children, projects, currentUser, onRequireAuth }) {
   const [projectInterest, setProjectInterest] = useState(SEED_PROJECT_INTEREST);
   const [personInterest, setPersonInterest] = useState(SEED_PERSON_INTEREST);
   const [shortlisted, setShortlisted] = useState(new Set());
@@ -70,6 +70,10 @@ export function InterestProvider({ children, projects }) {
   // Toggle: project team interested in a person
   const toggleProjectInterest = useCallback(
     (projectId, personId) => {
+      if (!currentUser) {
+        onRequireAuth?.();
+        return;
+      }
       const key = `${projectId}:${personId}`;
       setProjectInterest((prev) => {
         const next = new Set(prev);
@@ -79,12 +83,16 @@ export function InterestProvider({ children, projects }) {
       });
       toggleProjectInterestInDb(db, projectId, personId, rawDocs);
     },
-    [rawDocs]
+    [rawDocs, currentUser, onRequireAuth]
   );
 
   // Toggle: person interested in a project
   const togglePersonInterest = useCallback(
     (personId, projectId) => {
+      if (!currentUser) {
+        onRequireAuth?.();
+        return;
+      }
       const key = `${personId}:${projectId}`;
       setPersonInterest((prev) => {
         const next = new Set(prev);
@@ -94,12 +102,16 @@ export function InterestProvider({ children, projects }) {
       });
       togglePersonInterestInDb(db, personId, projectId, rawDocs);
     },
-    [rawDocs]
+    [rawDocs, currentUser, onRequireAuth]
   );
 
   // Toggle: project owner shortlisting a candidate
   const toggleShortlist = useCallback(
     (projectId, personId) => {
+      if (!currentUser) {
+        onRequireAuth?.();
+        return;
+      }
       const key = `${projectId}:${personId}`;
       setShortlisted((prev) => {
         const next = new Set(prev);
@@ -109,12 +121,16 @@ export function InterestProvider({ children, projects }) {
       });
       toggleShortlistInDb(db, projectId, personId, rawDocs);
     },
-    [rawDocs]
+    [rawDocs, currentUser, onRequireAuth]
   );
 
   // Toggle: project owner approving a shortlisted candidate for a team role
   const toggleApprove = useCallback(
     (projectId, personId) => {
+      if (!currentUser) {
+        onRequireAuth?.();
+        return;
+      }
       const key = `${projectId}:${personId}`;
       setApproved((prev) => {
         const next = new Set(prev);
@@ -124,7 +140,7 @@ export function InterestProvider({ children, projects }) {
       });
       toggleApproveInDb(db, projectId, personId, rawDocs);
     },
-    [rawDocs]
+    [rawDocs, currentUser, onRequireAuth]
   );
 
   // Record: candidate viewing a project detail page
@@ -246,6 +262,8 @@ export function InterestProvider({ children, projects }) {
   return (
     <InterestContext.Provider
       value={{
+        currentUser,
+        onRequireAuth,
         toggleProjectInterest,
         togglePersonInterest,
         toggleShortlist,

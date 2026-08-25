@@ -1,0 +1,409 @@
+/* ── Base Match Card (16px radius, 24px padding, soft shadow) ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  cursor: pointer;
+  position: relative;
+
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 220ms ease-out,
+    transform 220ms ease-out,
+    box-shadow 150ms ease-out,
+    border-color 150ms ease-out;
+
+  box-shadow: var(--shadow-sm);
+}
+
+.card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+  border-color: var(--border);
+}
+
+/* ── Mutual Match state ── */
+.mutual {
+  border-color: #0D9488;
+  border-width: 2px;
+  box-shadow:
+    0 0 0 3px rgba(13, 148, 136, 0.10),
+    var(--shadow-sm);
+}
+
+.mutual:hover {
+  box-shadow:
+    0 0 0 3px rgba(13, 148, 136, 0.16),
+    var(--shadow-hover);
+}
+
+/* Pulse animation — fires once when mutual becomes true */
+@keyframes mutualPulse {
+  0%   { box-shadow: 0 0 0 0px rgba(13, 148, 136, 0.40); }
+  50%  { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0); }
+  100% { box-shadow: 0 0 0 0px rgba(13, 148, 136, 0); }
+}
+
+.mutualPulseAnim {
+  animation: mutualPulse 350ms ease-out forwards;
+}
+
+/* ── Mutual badge (top-right ribbon) ── */
+.mutualBadge {
+  position: absolute;
+  top: -1px;
+  right: 20px;
+  background: var(--accent);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
+/* ── Header row ── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rank {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 22px;
+  flex-shrink: 0;
+}
+
+.rankTop {
+  color: var(--accent);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--accent-light);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nameBlock {
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.expDots {
+  display: flex;
+  gap: 3px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.dotFilled {
+  background: var(--accent);
+}
+
+.expText {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.availBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #0F766E;
+  background: #F0FDFA;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+/* ── Score Badge (Teal Highlight) ── */
+.scoreBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2.5px solid var(--accent);
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+
+.scoreBadge.high { border-color: var(--accent); }
+.scoreBadge.mid  { border-color: var(--score-mid); }
+.scoreBadge.low  { border-color: var(--score-low); }
+
+.scoreNum {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.scoreBadge.high .scoreNum { color: var(--accent); }
+.scoreBadge.mid  .scoreNum { color: var(--score-mid); }
+.scoreBadge.low  .scoreNum { color: var(--score-low); }
+
+.scoreSuffix {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* ── Why matched ── */
+.why {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.whyIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Semantic match indicator */
+.semanticTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* ── Skill chips (Rounded-pill, muted teal background) ── */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.chipGap {
+  background: var(--accent-light);
+  border-color: transparent;
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.chipSemantic {
+  background: #F0FDFA;
+  border-color: #CCFBF1;
+  color: #0F766E;
+  font-weight: 600;
+}
+
+/* ── Footer / Interested Button ── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 2px;
+}
+
+/* Secondary Button Style: transparent, 1px border #E2E8F0, teal text #0D9488, 8px radius */
+.interestedBtn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  transition:
+    background 150ms ease-out,
+    border-color 150ms ease-out,
+    color 150ms ease-out,
+    transform 100ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+.interestedBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  background: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+/* Active / Marked state: solid teal primary button */
+.interestedBtn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+}
+
+.interestedBtn.active:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  color: #FFFFFF;
+}
+
+.interestedBtn:active {
+  transform: scale(0.98);
+}
+
+/* ── Contact Lead Panel (Mutual Match Only) ── */
+.contactPanel {
+  background: var(--bg-subtle);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.contactHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.contactLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+
+.contactLink {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+
+.contactLink:hover {
+  color: var(--accent-dark);
+}
+
+/* ── Shortlist Toggle Button ── */
+.shortlistBtn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.shortlistBtn:hover {
+  border-color: #0D9488;
+  color: #0D9488;
+  background: #F0FDFA;
+}
+
+.shortlistBtn.shortlistedActive {
+  background: #F0FDFA;
+  border-color: #0D9488;
+  color: #0D9488;
+  font-weight: 700;
+}
+
+

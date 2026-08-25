@@ -1,0 +1,54 @@
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.iconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FEF3C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.headline {
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 600;
+  color: #92400E;
+  margin-bottom: 2px;
+}
+
+.sub {
+  font-size: 13px;
+  color: #78350F;
+  line-height: 1.5;
+}
+
+.urgencyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #D97706;
+  flex-shrink: 0;
+  margin-top: 6px;
+}

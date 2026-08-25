@@ -73,6 +73,7 @@ export default function PostProjectModal({ ownerInfo, onClose, onSubmit }) {
 
     const newProject = {
       id: `proj_${Date.now()}`,
+      ownerId: ownerInfo?.id || ownerInfo?.uid || ownerInfo?.email || `owner_${Date.now()}`,
       title: title.trim(),
       description: description.trim(),
       category,

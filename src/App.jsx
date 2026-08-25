@@ -7,6 +7,8 @@ import ProjectPage from "./components/ProjectPage/ProjectPage.jsx";
 import PersonPage from "./components/PersonPage/PersonPage.jsx";
 import ProjectDetailsModal from "./components/ProjectDetailsModal/ProjectDetailsModal.jsx";
 import PostProjectModal from "./components/PostProjectModal/PostProjectModal.jsx";
+import EditProfileModal from "./components/EditProfileModal/EditProfileModal.jsx";
+import LoadingSkeleton from "./components/LoadingSkeleton/LoadingSkeleton.jsx";
 import TagInput from "./components/TagInput/TagInput.jsx";
 import { auth, db } from "./firebase.js";
 import {
@@ -138,7 +140,7 @@ function PersonListCard({ person, index, onClick }) {
 }
 
 // ── Project List View Content with Search & Category Filter ──
-function ProjectListContent({ projects = PROJECTS, onSelectProject, onOpenDetails }) {
+function ProjectListContent({ projects = PROJECTS, isLoading, onSelectProject, onOpenDetails }) {
   const { getProjectStage } = useInterest();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Projects");
@@ -224,28 +226,12 @@ function ProjectListContent({ projects = PROJECTS, onSelectProject, onOpenDetail
         </div>
       </div>
 
-      <div className={styles.projectList}>
-        {activeProjects.map((p, i) => (
-          <ProjectListCard
-            key={p.id}
-            project={p}
-            index={i}
-            onClick={() => onSelectProject(p)}
-            onOpenDetails={onOpenDetails}
-          />
-        ))}
-        {activeProjects.length === 0 && (
-          <p style={{ color: "var(--text-muted)", padding: "24px 0" }}>
-            No active projects match your search criteria.
-          </p>
-        )}
-      </div>
-
-      {lockedProjects.length > 0 && (
+      {isLoading ? (
+        <LoadingSkeleton count={4} />
+      ) : (
         <>
-          <h2 className={styles.sectionHeading}>Completed / Staffed Projects</h2>
           <div className={styles.projectList}>
-            {lockedProjects.map((p, i) => (
+            {activeProjects.map((p, i) => (
               <ProjectListCard
                 key={p.id}
                 project={p}
@@ -254,7 +240,33 @@ function ProjectListContent({ projects = PROJECTS, onSelectProject, onOpenDetail
                 onOpenDetails={onOpenDetails}
               />
             ))}
+            {activeProjects.length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--bg-subtle)", borderRadius: "12px", border: "1px dashed var(--border)" }}>
+                <div style={{ fontSize: "32px", marginBottom: "8px" }}>🔎</div>
+                <h3 style={{ fontFamily: "var(--font-head)", fontSize: "18px", margin: "0 0 6px 0" }}>No Projects Available</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0 }}>
+                  No active projects match your search criteria or category filter.
+                </p>
+              </div>
+            )}
           </div>
+
+          {lockedProjects.length > 0 && (
+            <>
+              <h2 className={styles.sectionHeading}>Completed / Staffed Projects</h2>
+              <div className={styles.projectList}>
+                {lockedProjects.map((p, i) => (
+                  <ProjectListCard
+                    key={p.id}
+                    project={p}
+                    index={i}
+                    onClick={() => onSelectProject(p)}
+                    onOpenDetails={onOpenDetails}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
@@ -359,116 +371,122 @@ function LandingView({ projects = PROJECTS, onBrowse, onOpenDetails }) {
 }
 
 // ── Dashboard View (Exact Mockup Layout) ─────────────────────
-function DashboardView({ projects = PROJECTS, onSelectProject, onOpenDetails }) {
+function DashboardView({ projects = PROJECTS, isLoading, onSelectProject, onOpenDetails }) {
   const p0 = projects[0] || PROJECTS[0];
   const p1 = projects[1] || PROJECTS[1];
 
   return (
     <div className={styles.listPage}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Welcome back, Alex!</h1>
+        <h1 className={styles.pageTitle}>Welcome back!</h1>
         <p className={styles.pageSubtitle}>
           Here's an overview of your project matching activity.
         </p>
       </div>
 
-      {/* 4 Metric Cards */}
-      <div className={styles.dashboardGrid}>
-        <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Applications Sent</span>
-            <div className={styles.metricIcon}>📤</div>
-          </div>
-          <div className={styles.metricBodyRow}>
-            <span className={styles.metricNum}>12</span>
-          </div>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Active Matches</span>
-            <div className={styles.metricIcon}>🤝</div>
-          </div>
-          <div className={styles.metricBodyRow}>
-            <span className={styles.metricNum}>4</span>
-          </div>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Mutual Matches</span>
-            <div className={styles.metricIcon}>💚</div>
-          </div>
-          <div className={styles.metricBodyRow}>
-            <span className={styles.metricNum}>2</span>
-          </div>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricHeader}>
-            <span className={styles.metricLabel}>Profile Views</span>
-            <div className={styles.metricIcon}>👁️</div>
-          </div>
-          <div className={styles.metricBodyRow}>
-            <span className={styles.metricNum}>87</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2-Column Split: Recent Matches & Skill Alignment */}
-      <div className={styles.dashboardSplit}>
-        <div className={styles.dashBox}>
-          <h2 className={styles.dashBoxTitle}>Recent Matches</h2>
-          <div className={styles.projectList}>
-            {p0 && (
-              <div className={styles.matchRow} onClick={() => onOpenDetails(p0)} style={{ cursor: "pointer" }}>
-                <div className={styles.matchRowLeft}>
-                  <div className={styles.matchBadgeIcon}>M</div>
-                  <div>
-                    <div className={styles.matchRowTitle}>{p0.title.slice(0, 48)}...</div>
-                    <div className={styles.matchRowSub}>Match score: 98% · {p0.lead?.name}</div>
-                  </div>
-                </div>
-                <button
-                  className={styles.btnPrimary}
-                  style={{ padding: "5px 14px", fontSize: "13px" }}
-                  onClick={(e) => { e.stopPropagation(); onOpenDetails(p0); }}
-                >
-                  View
-                </button>
+      {isLoading ? (
+        <LoadingSkeleton count={2} />
+      ) : (
+        <>
+          {/* 4 Metric Cards */}
+          <div className={styles.dashboardGrid}>
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricLabel}>Applications Sent</span>
+                <div className={styles.metricIcon}>📤</div>
               </div>
-            )}
-
-            {p1 && (
-              <div className={styles.matchRow} onClick={() => onSelectProject(p1)} style={{ cursor: "pointer" }}>
-                <div className={styles.matchRowLeft}>
-                  <div className={styles.matchBadgeIcon}>S</div>
-                  <div>
-                    <div className={styles.matchRowTitle}>{p1.title}</div>
-                    <div className={styles.matchRowSub}>Match score: 92%</div>
-                  </div>
-                </div>
-                <button className={styles.btnSecondary} style={{ padding: "5px 14px", fontSize: "13px" }}>
-                  Pending
-                </button>
+              <div className={styles.metricBodyRow}>
+                <span className={styles.metricNum}>12</span>
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        <div className={styles.dashBox}>
-          <h2 className={styles.dashBoxTitle}>Skill Alignment</h2>
-          <p className={styles.dashBoxSub}>
-            Based on your recent applications, here are your strongest matches.
-          </p>
-          <div className={styles.skillPillsWrap}>
-            <span className={styles.skillAlignPill}>PyTorch (98%)</span>
-            <span className={styles.skillAlignPill}>Python (95%)</span>
-            <span className={styles.skillAlignPill}>TensorFlow (88%)</span>
-            <span className={styles.skillAlignPill}>Figma (82%)</span>
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricLabel}>Active Matches</span>
+                <div className={styles.metricIcon}>🤝</div>
+              </div>
+              <div className={styles.metricBodyRow}>
+                <span className={styles.metricNum}>4</span>
+              </div>
+            </div>
+
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricLabel}>Mutual Matches</span>
+                <div className={styles.metricIcon}>💚</div>
+              </div>
+              <div className={styles.metricBodyRow}>
+                <span className={styles.metricNum}>2</span>
+              </div>
+            </div>
+
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricLabel}>Profile Views</span>
+                <div className={styles.metricIcon}>👁️</div>
+              </div>
+              <div className={styles.metricBodyRow}>
+                <span className={styles.metricNum}>87</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* 2-Column Split: Recent Matches & Skill Alignment */}
+          <div className={styles.dashboardSplit}>
+            <div className={styles.dashBox}>
+              <h2 className={styles.dashBoxTitle}>Recent Matches</h2>
+              <div className={styles.projectList}>
+                {p0 && (
+                  <div className={styles.matchRow} onClick={() => onOpenDetails(p0)} style={{ cursor: "pointer" }}>
+                    <div className={styles.matchRowLeft}>
+                      <div className={styles.matchBadgeIcon}>M</div>
+                      <div>
+                        <div className={styles.matchRowTitle}>{p0.title.slice(0, 48)}...</div>
+                        <div className={styles.matchRowSub}>Match score: 98% · {p0.lead?.name}</div>
+                      </div>
+                    </div>
+                    <button
+                      className={styles.btnPrimary}
+                      style={{ padding: "5px 14px", fontSize: "13px" }}
+                      onClick={(e) => { e.stopPropagation(); onOpenDetails(p0); }}
+                    >
+                      View
+                    </button>
+                  </div>
+                )}
+
+                {p1 && (
+                  <div className={styles.matchRow} onClick={() => onSelectProject(p1)} style={{ cursor: "pointer" }}>
+                    <div className={styles.matchRowLeft}>
+                      <div className={styles.matchBadgeIcon}>S</div>
+                      <div>
+                        <div className={styles.matchRowTitle}>{p1.title}</div>
+                        <div className={styles.matchRowSub}>Match score: 92%</div>
+                      </div>
+                    </div>
+                    <button className={styles.btnSecondary} style={{ padding: "5px 14px", fontSize: "13px" }}>
+                      Pending
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.dashBox}>
+              <h2 className={styles.dashBoxTitle}>Skill Alignment</h2>
+              <p className={styles.dashBoxSub}>
+                Based on your recent applications, here are your strongest matches.
+              </p>
+              <div className={styles.skillPillsWrap}>
+                <span className={styles.skillAlignPill}>PyTorch (98%)</span>
+                <span className={styles.skillAlignPill}>Python (95%)</span>
+                <span className={styles.skillAlignPill}>TensorFlow (88%)</span>
+                <span className={styles.skillAlignPill}>Figma (82%)</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -563,7 +581,7 @@ function AuthModal({ onClose, onCreateProfile, onSignupAsOwner }) {
       };
 
       saveProfileToDb(db, ownerProfile);
-      onSignupAsOwner?.({ name: name.trim(), email: email.trim() }, ownerProfile);
+      onSignupAsOwner?.({ name: name.trim(), email: email.trim(), id: uid }, ownerProfile);
       onClose();
     }
   };
@@ -969,11 +987,12 @@ function Footer() {
 }
 
 // ── Main App Content ─────────────────────────────────────────
-function MainContent({ projects, setProjects, profiles, setProfiles, currentUser, setCurrentUser }) {
+function MainContent({ projects, setProjects, profiles, setProfiles, currentUser, setCurrentUser, isLoading, firestoreError, onRetryLoad }) {
   const [tab, setTab] = useState("projects"); // "landing" | "dashboard" | "projects" | "people"
   const [view, setView] = useState(null);     // null | { type: "project"|"person", id }
   const [showAuth, setShowAuth] = useState(false);
   const [showPostProject, setShowPostProject] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [ownerInfo, setOwnerInfo] = useState(null);
   const [modalProject, setModalProject] = useState(null);
 
@@ -1025,7 +1044,12 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
     setProjects((prev) => [newProject, ...prev.filter((p) => p.id !== newProject.id)]);
     setShowPostProject(false);
     setView({ type: "project", id: newProject.id });
-    setTab("projects");
+  };
+
+  const handleSaveProfile = (updatedProfile) => {
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
+    );
   };
 
   const handleSignOut = async () => {
@@ -1040,6 +1064,16 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
 
   return (
     <div className={styles.app}>
+      {/* ── Firestore Error Boundary Alert Banner ── */}
+      {firestoreError && (
+        <div style={{ background: "#FEF2F2", borderBottom: "1px solid #FCA5A5", color: "#991B1B", padding: "10px 16px", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span>⚠️ {firestoreError}</span>
+          <button onClick={onRetryLoad} style={{ background: "#991B1B", color: "#fff", border: "none", borderRadius: "4px", padding: "4px 10px", fontSize: "12px", cursor: "pointer" }}>
+            Refresh
+          </button>
+        </div>
+      )}
+
       {/* ── Nav ── */}
       <nav className={styles.nav}>
         <div className={styles.navInner}>
@@ -1096,16 +1130,23 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
                   className={styles.avatarBtn}
                   onClick={() => {
                     if (activeUserProfile) {
-                      setView({ type: "person", id: activeUserProfile.id });
+                      setShowEditProfile(true);
                     }
                   }}
-                  title={activeUserProfile ? activeUserProfile.name : (currentUser.email || "My Profile")}
+                  title="Click to edit profile"
                 >
                   <img
                     src={`https://api.dicebear.com/7.x/${activeUserProfile?.avatarStyle || "avataaars"}/svg?seed=${activeUserProfile?.avatarSeed || currentUser.email?.split("@")[0] || "User"}&backgroundColor=${activeUserProfile?.avatarBg || "b6e3f4"}`}
                     alt="User profile avatar"
                   />
                 </div>
+                <button
+                  className={styles.btnSecondary}
+                  onClick={() => setShowEditProfile(true)}
+                  style={{ padding: "5px 12px", fontSize: "12px" }}
+                >
+                  ✏️ Edit Profile
+                </button>
                 <button
                   className={styles.btnSecondary}
                   onClick={handleSignOut}
@@ -1164,6 +1205,7 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
             {tab === "dashboard" && (
               <DashboardView
                 projects={projects}
+                isLoading={isLoading}
                 onSelectProject={(project) => setView({ type: "project", id: project.id })}
                 onOpenDetails={(proj) => setModalProject(proj)}
               />
@@ -1172,6 +1214,7 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
             {tab === "projects" && (
               <ProjectListContent
                 projects={projects}
+                isLoading={isLoading}
                 onSelectProject={(project) => setView({ type: "project", id: project.id })}
                 onOpenDetails={(proj) => setModalProject(proj)}
               />
@@ -1185,16 +1228,28 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
                     {profiles.length} candidates ready to join projects that need their specific skills.
                   </p>
                 </div>
-                <div className={styles.peopleGrid}>
-                  {profiles.map((p, i) => (
-                    <PersonListCard
-                      key={p.id}
-                      person={p}
-                      index={i}
-                      onClick={() => setView({ type: "person", id: p.id })}
-                    />
-                  ))}
-                </div>
+                {isLoading ? (
+                  <LoadingSkeleton count={4} />
+                ) : profiles.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "40px 16px", background: "var(--bg-subtle)", borderRadius: "12px", border: "1px dashed var(--border)" }}>
+                    <div style={{ fontSize: "32px", marginBottom: "8px" }}>👥</div>
+                    <h3 style={{ fontFamily: "var(--font-head)", fontSize: "18px", margin: "0 0 6px 0" }}>No Candidates Found</h3>
+                    <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0 }}>
+                      No candidates match your selection yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={styles.peopleGrid}>
+                    {profiles.map((p, i) => (
+                      <PersonListCard
+                        key={p.id}
+                        person={p}
+                        index={i}
+                        onClick={() => setView({ type: "person", id: p.id })}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1213,9 +1268,30 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
       {/* Post Project Modal */}
       {showPostProject && (
         <PostProjectModal
-          ownerInfo={ownerInfo}
+          ownerInfo={ownerInfo || (currentUser ? { email: currentUser.email, id: currentUser.uid, name: currentUser.displayName || "Project Owner" } : null)}
           onClose={() => setShowPostProject(false)}
           onSubmit={handleCreateProject}
+        />
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (activeUserProfile || currentUser) && (
+        <EditProfileModal
+          profile={
+            activeUserProfile || {
+              id: currentUser?.uid || `user_${Date.now()}`,
+              name: currentUser?.displayName || currentUser?.email?.split("@")[0] || "Member",
+              email: currentUser?.email || "",
+              skills: ["React"],
+              interests: ["Open Source"],
+              availability: AVAILABILITY.HIGH,
+              experienceLevel: EXPERIENCE.ADVANCED,
+              bio: "",
+              role: "candidate",
+            }
+          }
+          onClose={() => setShowEditProfile(false)}
+          onSave={handleSaveProfile}
         />
       )}
 
@@ -1238,6 +1314,8 @@ export default function App() {
   const [projects, setProjects] = useState(PROJECTS);
   const [profiles, setProfiles] = useState(PROFILES);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [firestoreError, setFirestoreError] = useState(null);
 
   useEffect(() => {
     // 1. Listen for persistent Firebase Auth state changes
@@ -1250,17 +1328,33 @@ export default function App() {
     seedFirestoreIfEmpty(db);
 
     // 3. Subscribe to live Firestore changes
-    const unsubProfiles = subscribeToProfiles(db, (data) => {
-      if (data && data.length > 0) {
-        setProfiles(data);
+    const unsubProfiles = subscribeToProfiles(
+      db,
+      (data) => {
+        if (data && data.length > 0) {
+          setProfiles(data);
+        }
+        setIsLoading(false);
+      },
+      (err) => {
+        setFirestoreError("Something went wrong loading profiles. Try refreshing.");
+        setIsLoading(false);
       }
-    });
+    );
 
-    const unsubProjects = subscribeToProjects(db, (data) => {
-      if (data && data.length > 0) {
-        setProjects(data);
+    const unsubProjects = subscribeToProjects(
+      db,
+      (data) => {
+        if (data && data.length > 0) {
+          setProjects(data);
+        }
+        setIsLoading(false);
+      },
+      (err) => {
+        setFirestoreError("Something went wrong loading projects. Try refreshing.");
+        setIsLoading(false);
       }
-    });
+    );
 
     return () => {
       unsubAuth();
@@ -1268,6 +1362,11 @@ export default function App() {
       unsubProjects();
     };
   }, []);
+
+  const handleRetryLoad = () => {
+    setFirestoreError(null);
+    window.location.reload();
+  };
 
   return (
     <InterestProvider projects={projects}>
@@ -1278,6 +1377,9 @@ export default function App() {
         setProfiles={setProfiles}
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}
+        isLoading={isLoading}
+        firestoreError={firestoreError}
+        onRetryLoad={handleRetryLoad}
       />
     </InterestProvider>
   );

@@ -497,6 +497,31 @@ function DashboardView({ projects = PROJECTS, isLoading, onSelectProject, onOpen
   );
 }
 
+function ProjectMatchLogo({ width = 28, height = 28, showText = true, className = "" }) {
+  return (
+    <div className={className || styles.logo} style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+      <svg width={width} height={height} viewBox="0 0 100 100" fill="none" style={{ flexShrink: 0 }}>
+        <circle cx="30" cy="22" r="10" fill="#0D9488" />
+        <circle cx="70" cy="22" r="10" fill="#0D9488" />
+        <path
+          d="M 20 40 C 12 48, 12 60, 22 70 L 38 86 C 48 96, 64 96, 74 86 C 82 78, 82 66, 74 58 L 62 46 C 58 42, 50 42, 46 46 C 42 50, 42 58, 46 62 L 58 74 C 62 78, 62 82, 58 86 C 54 90, 46 90, 42 86 L 26 70 C 20 64, 20 56, 26 50 Z"
+          fill="#0D9488"
+        />
+        <path
+          d="M 80 40 C 88 48, 88 60, 78 70 L 62 86 C 52 96, 36 96, 26 86 C 18 78, 18 66, 26 58 L 38 46 C 42 42, 50 42, 54 46 C 58 50, 58 58, 54 62 L 42 74 C 38 78, 38 82, 42 86 C 46 90, 54 90, 58 86 L 74 70 C 80 64, 80 56, 74 50 Z"
+          fill="#0D9488"
+          opacity="0.95"
+        />
+      </svg>
+      {showText && (
+        <span>
+          Project<span style={{ color: "#0D9488" }}>Match</span>
+        </span>
+      )}
+    </div>
+  );
+}
+
 // ── Auth Modal Component (Firebase Auth Connected) ───────────
 function AuthModal({ onClose, onCreateProfile, onSignupAsOwner }) {
   const [authTab, setAuthTab] = useState("signin");
@@ -630,8 +655,8 @@ function AuthModal({ onClose, onCreateProfile, onSignupAsOwner }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.authHeader}>
-          <div className={styles.logo} style={{ justifyContent: "center", marginBottom: "4px" }}>
-            Project<span>Match</span>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
+            <ProjectMatchLogo width={32} height={32} />
           </div>
           <p className={styles.authSub}>
             {authTab === "signin"
@@ -965,7 +990,7 @@ function Footer() {
       <div className={styles.footerInner}>
         <div className={styles.footerBrand}>
           <div className={styles.footerLogo}>
-            Project<span>Match</span>
+            <ProjectMatchLogo width={24} height={24} />
           </div>
         </div>
 
@@ -1086,12 +1111,9 @@ function MainContent({ projects, setProjects, profiles, setProfiles, currentUser
           <div
             className={styles.logo}
             onClick={() => { setView(null); setTab("landing"); }}
+            style={{ cursor: "pointer" }}
           >
-            <svg className={styles.logoIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M12 3v3m0 12v3M3 12h3m12 0h3m-3.5-6.5l-2 2m-7 7l-2 2m11 0l-2-2m-7-7l-2-2"></path>
-            </svg>
-            Project<span>Match</span>
+            <ProjectMatchLogo width={28} height={28} />
           </div>
 
           <div className={styles.navTabs}>

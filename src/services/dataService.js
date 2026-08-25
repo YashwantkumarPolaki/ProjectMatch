@@ -17,10 +17,23 @@ const INITIAL_INTERESTS = [
 
 /**
  * Migrate seed data into Firestore on first load if collection is empty.
+ * Session-gated via sessionStorage so it only checks once per session.
+ * Queries collections in parallel with Promise.all.
  */
 export async function seedFirestoreIfEmpty(db) {
+  if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("pm_seeded")) {
+    return; // Already checked/seeded in this session
+  }
+
   try {
-    const profileSnap = await getDocs(collection(db, "profiles"));
+    const [profileSnap, projectSnap, interestSnap] = await Promise.all([
+      getDocs(collection(db, "profiles")),
+      getDocs(collection(db, "projects")),
+      getDocs(collection(db, "interests")),
+    ]);
+
+    const seedTasks = [];
+
     if (profileSnap.empty) {
       console.log("🌱 Seeding Firestore profiles...");
       const batch = writeBatch(db);
@@ -28,11 +41,9 @@ export async function seedFirestoreIfEmpty(db) {
         const ref = doc(db, "profiles", profile.id);
         batch.set(ref, profile);
       });
-      await batch.commit();
-      console.log("✅ Firestore profiles seeded!");
+      seedTasks.push(batch.commit());
     }
 
-    const projectSnap = await getDocs(collection(db, "projects"));
     if (projectSnap.empty) {
       console.log("🌱 Seeding Firestore projects...");
       const batch = writeBatch(db);
@@ -40,11 +51,9 @@ export async function seedFirestoreIfEmpty(db) {
         const ref = doc(db, "projects", project.id);
         batch.set(ref, project);
       });
-      await batch.commit();
-      console.log("✅ Firestore projects seeded!");
+      seedTasks.push(batch.commit());
     }
 
-    const interestSnap = await getDocs(collection(db, "interests"));
     if (interestSnap.empty) {
       console.log("🌱 Seeding Firestore interest state...");
       const batch = writeBatch(db);
@@ -52,8 +61,16 @@ export async function seedFirestoreIfEmpty(db) {
         const ref = doc(db, "interests", item.id);
         batch.set(ref, item);
       });
-      await batch.commit();
-      console.log("✅ Firestore interest state seeded!");
+      seedTasks.push(batch.commit());
+    }
+
+    if (seedTasks.length > 0) {
+      await Promise.all(seedTasks);
+      console.log("✅ Firestore seed complete!");
+    }
+
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem("pm_seeded", "true");
     }
   } catch (err) {
     console.warn("⚠️ Firestore auto-seed check skipped or failed:", err.message);

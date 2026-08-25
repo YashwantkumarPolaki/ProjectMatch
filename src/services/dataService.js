@@ -239,3 +239,55 @@ export async function toggleShortlistInDb(db, projectId, personId, currentDocs) 
     console.warn("Could not update shortlist status in Firestore:", err.message);
   }
 }
+
+/**
+ * Toggle approved status for a candidate on a project in Firestore.
+ */
+export async function toggleApproveInDb(db, projectId, personId, currentDocs) {
+  const docId = `${projectId}:${personId}`;
+  const existing = currentDocs.find((d) => d.id === docId || (d.projectId === projectId && d.personId === personId));
+  const newApproved = existing ? !existing.approved : true;
+
+  try {
+    const ref = doc(db, "interests", docId);
+    await setDoc(ref, {
+      id: docId,
+      projectId,
+      personId,
+      projectInterest: existing ? Boolean(existing.projectInterest) : false,
+      personInterest: existing ? Boolean(existing.personInterest) : false,
+      shortlisted: existing ? Boolean(existing.shortlisted) : true,
+      approved: newApproved,
+    }, { merge: true });
+  } catch (err) {
+    console.warn("Could not update approval status in Firestore:", err.message);
+  }
+}
+
+/**
+ * Record view on a project by a candidate in Firestore.
+ */
+export async function recordProjectViewInDb(db, projectId, personId, currentDocs) {
+  if (!personId || !projectId) return;
+  const docId = `${projectId}:${personId}`;
+  const existing = currentDocs.find((d) => d.id === docId || (d.projectId === projectId && d.personId === personId));
+
+  if (existing?.viewed) return; // Already recorded
+
+  try {
+    const ref = doc(db, "interests", docId);
+    await setDoc(ref, {
+      id: docId,
+      projectId,
+      personId,
+      projectInterest: existing ? Boolean(existing.projectInterest) : false,
+      personInterest: existing ? Boolean(existing.personInterest) : false,
+      shortlisted: existing ? Boolean(existing.shortlisted) : false,
+      approved: existing ? Boolean(existing.approved) : false,
+      viewed: true,
+      viewedAt: Date.now(),
+    }, { merge: true });
+  } catch (err) {
+    console.warn("Could not record project view in Firestore:", err.message);
+  }
+}

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { rankCandidatesForProject } from "../../matching/engine.js";
 import { useInterest } from "../../context/InterestContext.jsx";
 import MatchCard from "../MatchCard/MatchCard.jsx";
@@ -20,16 +20,27 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
     isPersonInterested,
     isShortlisted,
     toggleShortlist,
+    isApproved,
+    toggleApprove,
+    isViewed,
+    recordView,
     getProjectStage,
     spotsRemaining,
   } = useInterest();
+
+  // Record project view on page open
+  useEffect(() => {
+    const activePersonId = profiles[0]?.id || "p1";
+    recordView(project.id, activePersonId);
+  }, [project.id, recordView, profiles]);
 
   const stage = getProjectStage(project);
   const spotsLeft = spotsRemaining(project);
 
   const applicants = profiles.filter((p) => isPersonInterested(p.id, project.id));
-  const shortlistedApplicants = applicants.filter((p) => isShortlisted(project.id, p.id));
-  const generalApplicants = applicants.filter((p) => !isShortlisted(project.id, p.id));
+  const approvedApplicants = applicants.filter((p) => isApproved(project.id, p.id));
+  const shortlistedApplicants = applicants.filter((p) => isShortlisted(project.id, p.id) && !isApproved(project.id, p.id));
+  const generalApplicants = applicants.filter((p) => !isShortlisted(project.id, p.id) && !isApproved(project.id, p.id));
 
   function toggleNearMiss() {
     setNearMissOpen((v) => !v);
@@ -126,7 +137,7 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Applicants ({applicants.length})</h2>
           <span className={styles.sectionCount}>
-            {shortlistedApplicants.length} Shortlisted · {generalApplicants.length} Pending
+            {approvedApplicants.length} Approved · {shortlistedApplicants.length} Shortlisted · {generalApplicants.length} Pending
           </span>
         </div>
 
@@ -138,6 +149,47 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {/* Approved / Team Members Subsection */}
+            {approvedApplicants.length > 0 && (
+              <div className={styles.approvedBox}>
+                <div className={styles.approvedHeader}>
+                  <span className={styles.checkIcon}>✅</span>
+                  <h3 className={styles.approvedTitle}>
+                    Approved Team Members ({approvedApplicants.length})
+                  </h3>
+                </div>
+                <div className={styles.grid}>
+                  {approvedApplicants.map((p, i) => {
+                    const entry = ranked.find((r) => r.candidate.id === p.id) || {
+                      candidate: p,
+                      scores: { overallScore: 95, gapFillPercent: 90, availabilityScore: 95, experienceScore: 95 },
+                      whyMatched: "Approved team member for this project.",
+                    };
+                    return (
+                      <MatchCard
+                        key={p.id}
+                        candidate={p}
+                        scores={entry.scores}
+                        whyMatched={entry.whyMatched}
+                        rank={i + 1}
+                        delay={i * 40}
+                        animate
+                        isApproved={true}
+                        isMutual={isMutualMatch(p.id, project.id)}
+                        isInterested={isProjectInterested(project.id, p.id)}
+                        onInterest={() => toggleProjectInterest(project.id, p.id)}
+                        isShortlisted={true}
+                        onShortlist={() => toggleShortlist(project.id, p.id)}
+                        onApprove={() => toggleApprove(project.id, p.id)}
+                        isViewed={isViewed(project.id, p.id)}
+                        onClick={() => onSelectPerson(p)}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Shortlisted Candidates Subsection */}
             {shortlistedApplicants.length > 0 && (
               <div className={styles.shortlistedBox}>
@@ -163,12 +215,15 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
                         rank={i + 1}
                         delay={i * 40}
                         animate
+                        isApproved={false}
                         isMutual={isMutualMatch(p.id, project.id)}
                         isInterested={isProjectInterested(project.id, p.id)}
                         onInterest={() => toggleProjectInterest(project.id, p.id)}
                         interestLabel="Confirm Match"
                         isShortlisted={true}
                         onShortlist={() => toggleShortlist(project.id, p.id)}
+                        onApprove={() => toggleApprove(project.id, p.id)}
+                        isViewed={isViewed(project.id, p.id)}
                         onClick={() => onSelectPerson(p)}
                       />
                     );
@@ -180,7 +235,7 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
             {/* General Applicants Subsection */}
             {generalApplicants.length > 0 && (
               <div className={styles.generalApplicantsBox}>
-                {shortlistedApplicants.length > 0 && (
+                {(shortlistedApplicants.length > 0 || approvedApplicants.length > 0) && (
                   <h3 className={styles.generalTitle}>
                     Other Applicants ({generalApplicants.length})
                   </h3>
@@ -201,12 +256,14 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
                         rank={i + 1}
                         delay={i * 40}
                         animate
+                        isApproved={false}
                         isMutual={isMutualMatch(p.id, project.id)}
                         isInterested={isProjectInterested(project.id, p.id)}
                         onInterest={() => toggleProjectInterest(project.id, p.id)}
                         interestLabel="Confirm Match"
                         isShortlisted={false}
                         onShortlist={() => toggleShortlist(project.id, p.id)}
+                        isViewed={isViewed(project.id, p.id)}
                         onClick={() => onSelectPerson(p)}
                       />
                     );
@@ -242,12 +299,14 @@ export default function ProjectPage({ project, profiles, onSelectPerson, onBack 
                 rank={i + 1}
                 delay={i * 40}
                 animate
+                isApproved={isApproved(project.id, entry.candidate.id)}
                 isMutual={isMutualMatch(entry.candidate.id, project.id)}
                 isInterested={isProjectInterested(project.id, entry.candidate.id)}
                 onInterest={() => toggleProjectInterest(project.id, entry.candidate.id)}
                 interestLabel="Express Interest"
                 isShortlisted={isShortlisted(project.id, entry.candidate.id)}
                 onShortlist={() => toggleShortlist(project.id, entry.candidate.id)}
+                isViewed={isViewed(project.id, entry.candidate.id)}
                 onClick={() => onSelectPerson(entry.candidate)}
               />
             ))}

@@ -28,7 +28,7 @@ import styles from "./App.module.css";
 // ── Mini project card for the project list ─────────────────
 function ProjectListCard({ project, index, onClick, onOpenDetails }) {
   const [visible, setVisible] = useState(false);
-  const { getProjectStage, spotsRemaining, getProjectApplicantStats } = useInterest();
+  const { getProjectStage, spotsRemaining, getProjectApplicantStats, isViewed } = useInterest();
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), index * 60);
@@ -38,6 +38,7 @@ function ProjectListCard({ project, index, onClick, onOpenDetails }) {
   const stage = getProjectStage(project);
   const spots = spotsRemaining(project);
   const { applicantCount, shortlistedCount } = getProjectApplicantStats(project.id);
+  const viewed = isViewed(project.id, "p1");
 
   const unmetSkills = [
     ...new Set(project.roles.flatMap((r) => r.requiredSkills)),
@@ -54,6 +55,11 @@ function ProjectListCard({ project, index, onClick, onOpenDetails }) {
       <div className={styles.projectCardLeft}>
         <div className={styles.badgeRow}>
           <span className={styles.catBadge}>{project.category}</span>
+          {viewed && (
+            <span className={styles.catBadge} style={{ background: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0" }}>
+              👁 Viewed
+            </span>
+          )}
           {applicantCount > 0 && (
             <span className={styles.catBadge} style={{ background: "#F0FDFA", color: "#0F766E", border: "1px solid #CCFBF1" }}>
               📥 {applicantCount} {applicantCount === 1 ? "Applicant" : "Applicants"} ({shortlistedCount} Shortlisted)

@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { db } from "../firebase.js";
 import {
+  recordProjectViewInDb,
   subscribeToInterests,
+  toggleApproveInDb,
   togglePersonInterestInDb,
   toggleProjectInterestInDb,
   toggleShortlistInDb,
@@ -16,6 +18,8 @@ export function InterestProvider({ children, projects }) {
   const [projectInterest, setProjectInterest] = useState(SEED_PROJECT_INTEREST);
   const [personInterest, setPersonInterest] = useState(SEED_PERSON_INTEREST);
   const [shortlisted, setShortlisted] = useState(new Set());
+  const [approved, setApproved] = useState(new Set());
+  const [viewed, setViewed] = useState(new Set());
   const [rawDocs, setRawDocs] = useState([]);
 
   useEffect(() => {
@@ -24,6 +28,8 @@ export function InterestProvider({ children, projects }) {
       const projSet = new Set();
       const persSet = new Set();
       const shortSet = new Set();
+      const appSet = new Set();
+      const viewSet = new Set();
 
       docs.forEach((item) => {
         if (item.projectInterest) {
@@ -35,12 +41,26 @@ export function InterestProvider({ children, projects }) {
         if (item.shortlisted) {
           shortSet.add(`${item.projectId}:${item.personId}`);
         }
+        if (item.approved) {
+          appSet.add(`${item.projectId}:${item.personId}`);
+        }
+        if (item.viewed) {
+          viewSet.add(`${item.projectId}:${item.personId}`);
+        }
       });
 
-      if (projSet.size > 0 || persSet.size > 0 || shortSet.size > 0) {
+      if (
+        projSet.size > 0 ||
+        persSet.size > 0 ||
+        shortSet.size > 0 ||
+        appSet.size > 0 ||
+        viewSet.size > 0
+      ) {
         setProjectInterest(projSet);
         setPersonInterest(persSet);
         setShortlisted(shortSet);
+        setApproved(appSet);
+        setViewed(viewSet);
       }
     });
 
@@ -92,6 +112,36 @@ export function InterestProvider({ children, projects }) {
     [rawDocs]
   );
 
+  // Toggle: project owner approving a shortlisted candidate for a team role
+  const toggleApprove = useCallback(
+    (projectId, personId) => {
+      const key = `${projectId}:${personId}`;
+      setApproved((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+        return next;
+      });
+      toggleApproveInDb(db, projectId, personId, rawDocs);
+    },
+    [rawDocs]
+  );
+
+  // Record: candidate viewing a project detail page
+  const recordView = useCallback(
+    (projectId, personId) => {
+      if (!personId || !projectId) return;
+      const key = `${projectId}:${personId}`;
+      setViewed((prev) => {
+        const next = new Set(prev);
+        next.add(key);
+        return next;
+      });
+      recordProjectViewInDb(db, projectId, personId, rawDocs);
+    },
+    [rawDocs]
+  );
+
   const isProjectInterested = useCallback(
     (projectId, personId) => projectInterest.has(`${projectId}:${personId}`),
     [projectInterest]
@@ -107,6 +157,16 @@ export function InterestProvider({ children, projects }) {
     [shortlisted]
   );
 
+  const isApproved = useCallback(
+    (projectId, personId) => approved.has(`${projectId}:${personId}`),
+    [approved]
+  );
+
+  const isViewed = useCallback(
+    (projectId, personId) => viewed.has(`${projectId}:${personId}`),
+    [viewed]
+  );
+
   const isMutualMatch = useCallback(
     (personId, projectId) =>
       projectInterest.has(`${projectId}:${personId}`) &&
@@ -114,19 +174,25 @@ export function InterestProvider({ children, projects }) {
     [projectInterest, personInterest]
   );
 
-  // Count mutual matches for a project
-  const getMutualMatchCount = useCallback(
+  // Count filled roles (mutual matches or approved candidates) for a project
+  const getFilledCount = useCallback(
     (projectId) => {
-      let count = 0;
+      const filledSet = new Set();
       for (const key of projectInterest) {
         const [pId, personId] = key.split(":");
         if (pId === projectId && personInterest.has(`${personId}:${projectId}`)) {
-          count++;
+          filledSet.add(personId);
         }
       }
-      return count;
+      for (const key of approved) {
+        const [pId, personId] = key.split(":");
+        if (pId === projectId) {
+          filledSet.add(personId);
+        }
+      }
+      return filledSet.size;
     },
-    [projectInterest, personInterest]
+    [projectInterest, personInterest, approved]
   );
 
   // Stats for project owner applicant review
@@ -134,6 +200,7 @@ export function InterestProvider({ children, projects }) {
     (projectId) => {
       let applicantCount = 0;
       let shortlistedCount = 0;
+      let approvedCount = 0;
       const applicantPersonIds = [];
 
       for (const item of rawDocs) {
@@ -143,10 +210,13 @@ export function InterestProvider({ children, projects }) {
           if (item.shortlisted) {
             shortlistedCount++;
           }
+          if (item.approved) {
+            approvedCount++;
+          }
         }
       }
 
-      return { applicantCount, shortlistedCount, applicantPersonIds };
+      return { applicantCount, shortlistedCount, approvedCount, applicantPersonIds };
     },
     [rawDocs]
   );
@@ -155,22 +225,22 @@ export function InterestProvider({ children, projects }) {
   const getProjectStage = useCallback(
     (project) => {
       const totalRoles = project.roles.length;
-      const filled = Math.min(getMutualMatchCount(project.id), totalRoles);
+      const filled = Math.min(getFilledCount(project.id), totalRoles);
       if (filled >= totalRoles) return "Locked";
       if (totalRoles > 1 && filled === totalRoles - 1) return "Almost Locked";
       return "Forming";
     },
-    [getMutualMatchCount]
+    [getFilledCount]
   );
 
   // Spots remaining
   const spotsRemaining = useCallback(
     (project) => {
       const totalRoles = project.roles.length;
-      const filled = Math.min(getMutualMatchCount(project.id), totalRoles);
+      const filled = Math.min(getFilledCount(project.id), totalRoles);
       return Math.max(0, totalRoles - filled);
     },
-    [getMutualMatchCount]
+    [getFilledCount]
   );
 
   return (
@@ -179,11 +249,15 @@ export function InterestProvider({ children, projects }) {
         toggleProjectInterest,
         togglePersonInterest,
         toggleShortlist,
+        toggleApprove,
+        recordView,
         isProjectInterested,
         isPersonInterested,
         isShortlisted,
+        isApproved,
+        isViewed,
         isMutualMatch,
-        getMutualMatchCount,
+        getMutualMatchCount: getFilledCount,
         getProjectApplicantStats,
         getProjectStage,
         spotsRemaining,

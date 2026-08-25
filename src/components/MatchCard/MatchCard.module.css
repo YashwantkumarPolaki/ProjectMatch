@@ -76,6 +76,37 @@
   box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
 }
 
+/* ── Approved badge (top-right green ribbon) ── */
+.approvedBadge {
+  position: absolute;
+  top: -1px;
+  right: 20px;
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+}
+
+.viewedBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
 /* ── Header row ── */
 .header {
   display: flex;
@@ -405,5 +436,30 @@
   color: #0D9488;
   font-weight: 700;
 }
+
+/* ── Approve Button ── */
+.approveBtn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #16A34A;
+  background: #F0FDF4;
+  color: #16A34A;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.approveBtn:hover {
+  background: #16A34A;
+  color: #FFFFFF;
+}
+
+.approveBtn.approvedActive {
+  background: #16A34A;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
 
 

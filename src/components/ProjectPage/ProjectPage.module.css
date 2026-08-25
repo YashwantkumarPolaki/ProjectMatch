@@ -378,3 +378,32 @@
   color: var(--text-muted);
 }
 
+/* ── Approved Team Members Box ── */
+.approvedBox {
+  background: #F0FDF4;
+  border: 2px solid #16A34A;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.approvedHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-md);
+}
+
+.checkIcon {
+  font-size: 18px;
+}
+
+.approvedTitle {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 700;
+  color: #15803D;
+  margin: 0;
+}
+
+

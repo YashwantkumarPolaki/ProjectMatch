@@ -52,6 +52,9 @@ export default function MatchCard({
   interestLabel = "Express Interest",
   isShortlisted = false,
   onShortlist,
+  isApproved = false,
+  onApprove,
+  isViewed = false,
 }) {
   const mounted = useMountTrigger(delay);
   const displayScore = useCountUp(animate ? scores.overallScore : 0, delay);
@@ -85,7 +88,7 @@ export default function MatchCard({
       className={[
         styles.card,
         mounted ? styles.visible : "",
-        isMutual ? styles.mutual : "",
+        isMutual || isApproved ? styles.mutual : "",
         pulseClass,
       ].filter(Boolean).join(" ")}
       style={{ transitionDelay: `${delay}ms` }}
@@ -94,12 +97,16 @@ export default function MatchCard({
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick?.()}
     >
-      {/* ── Mutual Match badge ── */}
-      {isMutual && (
+      {/* ── Top Ribbon Badges ── */}
+      {isApproved ? (
+        <div className={styles.approvedBadge}>
+          <span>✅</span> Approved
+        </div>
+      ) : isMutual ? (
         <div className={styles.mutualBadge}>
           <span>🤝</span> Mutual Match
         </div>
-      )}
+      ) : null}
 
       {/* ── Header row ── */}
       <div className={styles.header}>
@@ -116,6 +123,11 @@ export default function MatchCard({
               <span className={styles.expDots}>{expDots(candidate.experienceLevel)}</span>
               <span className={styles.expText}>{expLabel(candidate.experienceLevel)}</span>
               <span className={styles.availBadge}>{candidate.availability}</span>
+              {isViewed && (
+                <span className={styles.viewedBadge} title="Candidate viewed this project">
+                  👁 Viewed
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -171,14 +183,14 @@ export default function MatchCard({
         })}
       </div>
 
-      {/* ── Contact Lead Panel (Mutual Match Only) ── */}
-      {isMutual && (
+      {/* ── Contact Lead Panel (Mutual Match or Approved Only) ── */}
+      {(isMutual || isApproved) && (
         <div
           className={styles.contactPanel}
           onClick={(e) => e.stopPropagation()}
         >
           <div className={styles.contactHeader}>
-            <span>📞</span> Contact Lead Info
+            <span>📞</span> Contact Info ({isApproved ? "Approved Team Member" : "Mutual Match"})
           </div>
           <div className={styles.contactDetails}>
             {contactPerson.email && (
@@ -208,7 +220,7 @@ export default function MatchCard({
       )}
 
       {/* ── Action buttons footer ── */}
-      {(onInterest || onShortlist) && (
+      {(onInterest || onShortlist || onApprove) && (
         <div className={styles.footer} style={{ gap: "8px", flexWrap: "wrap" }}>
           {onShortlist && (
             <button
@@ -219,6 +231,18 @@ export default function MatchCard({
               }}
             >
               {isShortlisted ? "⭐ Shortlisted" : "☆ Shortlist"}
+            </button>
+          )}
+
+          {onApprove && (
+            <button
+              className={`${styles.approveBtn} ${isApproved ? styles.approvedActive : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onApprove();
+              }}
+            >
+              {isApproved ? "✅ Approved" : "✓ Approve Candidate"}
             </button>
           )}
 
